@@ -38,7 +38,7 @@ def generate_python_file(json_file_path, output_file_path=None):
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
-    class_defs = generate_python_classes(json_string)
+    class_defs = generate_python_classes(json.loads(json_string))
     with open(output_file_path, "w") as f:
         f.write(class_defs)
 
