@@ -25,7 +25,7 @@ def generate_python_class(data):
         data_[key] = consistent_class_name(val)
     
     # Create the class definition code
-    class_def = "\nclass " + name + "(BaseModel):\n"
+    class_def = "\nclass " + consistent_class_name(data) + "(BaseModel):\n"
     for key, val in data_.items():
         class_def += "    " + key + ": " + val + "\n"
     
@@ -35,7 +35,7 @@ def generate_python_classes(data):
     """
     Generate a class definition for each object in the JSON string.
     """
-    class_def = "from pydantic import BaseModel \n"+\
+    class_defs = "from pydantic import BaseModel \n"+\
                  "from typing import Optional \n"+\
                  "from __future__ import annotations \n"
     stack = [data]
