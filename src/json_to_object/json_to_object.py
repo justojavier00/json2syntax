@@ -35,11 +35,9 @@ def generate_python_classes(data):
     """
     Generate a class definition for each object in the JSON string.
     """
-    class_defs = """
-from dataclasses import dataclass
-from typing import List, Union
-
-"""
+    class_def = "from pydantic import BaseModel \n"+\
+                 "from typing import Optional \n"+\
+                 "from __future__ import annotations \n"
     stack = [data]
     while stack:
         value = stack.pop()
@@ -53,14 +51,10 @@ from typing import List, Union
 
 
 def generate_python_file(json_file_path, root_name="Root", output_file_path=None):
-    file_imports = "from pydantic import BaseModel \n"+\
-                   "from typing import Optional \n"+\
-                   "from __future__ import annotations \n"
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
     class_defs = generate_python_classes(json.loads(json_string))
     with open(output_file_path, "w") as f:
-        f.write(file_imports)
         f.write(class_defs)
 
