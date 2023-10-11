@@ -5,12 +5,13 @@ def consistent_class_name(data):
     if isinstance(data, dict):
         return f"C{id(data)}"
     elif isinstance(data, list):
-        if len(data) == 0:
+        class_names = list(set(consistent_class_name(d) for d in data))
+        if len(class_names) == 0:
             return "List"
-        elif len(data) == 1:
-            return "List[" + consistent_class_name(data[0]) + "]"
+        elif len(class_names) == 1:
+            return "List[" + class_names[0] + "]"
         else:
-            return "List[Union[" + ", ".join([consistent_class_name(d) for d in data]) + "]]"
+            return "List[Union[" + ", ".join(class_names) + "]]"
     else:
         return type(data).__name__
 
