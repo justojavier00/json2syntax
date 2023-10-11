@@ -1,44 +1,55 @@
-from dataclasses import dataclass
 import json
 import os
 
-def generate_python_class(data, name):
+def consistent_class_name(data):
+    if isinstance(data, dict):
+        return f"C{id(data)}"
+    elif isinstance(data, list):
+        return "List[Union[" + ", ".join([consistent_class_name(d) for d in data]) + "]]"
+    else:
+        return type(data).__name__
+
+def generate_python_class(data):
     """
     Generate a single class from a dictionary of data
     and a name for the class.
     """
     data_ = {}
     for key, val in data.items():
-        data_[key] = type(val).__name__
+        data_[key] = consistent_class_name(val)
     
     # Create the class definition code
-    class_def = "@dataclass\nclass " + name + ":\n"
+    class_def = "@dataclass\nclass " + consistent_class_name(data) + ":\n"
     for key, val in data_.items():
         class_def += "    " + key + ": " + val + "\n"
     
     return class_def
 
-def generate_python_classes(data, root_name="Root"):
+def generate_python_classes(data):
     """
     Generate a class definition for each object in the JSON string.
     """
-    class_defs = ""
-    stack = [(root_name, data)]
+    class_defs = """
+from dataclasses import dataclass
+from typing import List, Union
+
+"""
+    stack = [data]
     while stack:
-        key, value = stack.pop()
+        value = stack.pop()
         if isinstance(value, dict):
-            class_def = generate_python_class(value, key)
+            class_def = generate_python_class(value)
             class_defs += class_def + "\n"
-            stack.extend([(f'{key}_{k}', v) for k, v in value.items()])
+            stack.extend(list(value.values()))
         elif isinstance(value, list):
-            stack.extend([(f'{key}_{i}', v) for i, v in enumerate(value)])
+            stack.extend(value)
     return class_defs
 
-def generate_python_file(json_file_path, root_name="Root", output_file_path=None):
+def generate_python_file(json_file_path, output_file_path=None):
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
-    class_defs = generate_python_classes(json.loads(json_string), root_name=root_name)
+    class_defs = generate_python_classes(json.loads(json_string))
     with open(output_file_path, "w") as f:
         f.write(class_defs)
 
