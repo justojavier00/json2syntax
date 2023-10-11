@@ -1,45 +1,15 @@
 from dataclasses import dataclass
 import json
-import ast
+import os
 
-
-# This function reduces redundant classs
-def contract_classes(s):
-    module = ast.parse(s)
-    classes = {}
-    for cls in module.body:
-        if isinstance(cls, ast.ClassDef):
-            fields = []
-            for dec in cls.decorator_list:
-                if isinstance(dec, ast.Name) and dec.id == 'dataclass':
-                    for f in cls.body:
-                        if isinstance(f, ast.AnnAssign):
-                            fields.append((f.target.id, ast.unparse(f.annotation)))
-            fields = tuple(fields)
-            if fields in classes:
-                classes[fields].append(cls.name)
-            else:
-                classes[fields] = [cls.name]
-
-    res = []
-    for fields, names in classes.items():
-        res.append('@dataclass')
-        res.append(f'class {names[0]}:')
-        for name, typ in fields:
-            res.append(f'    {name}: {typ}')
-        res.append('')
-
-    return '\n'.join(res)
-
-# This function defines a class once a dictionary is found
-def create_class(data, name):
-    # Create a new class with the dictionary keys as attributes
+def generate_python_class(data, name):
+    """
+    Generate a single class from a dictionary of data
+    and a name for the class.
+    """
     data_ = {}
     for key, val in data.items():
-        if isinstance(val, dict):
-            data_[key] = key
-        else:
-            data_[key] = type(val).__name__
+        data_[key] = type(val).__name__
     
     # Create the class definition code
     class_def = "@dataclass\nclass " + name + ":\n"
@@ -48,28 +18,27 @@ def create_class(data, name):
     
     return class_def
 
-# This funtion creates a file json_file_name.py from every json_file_name.json
-def create_classes(json_file):
-    # Load the JSON file
-    with open(json_file) as f:
-        data = json.load(f)
-    # Iterate over the dictionaries in the JSON file and create a class for each one
+def generate_python_classes(data, root_name="Root"):
+    """
+    Generate a class definition for each object in the JSON string.
+    """
     class_defs = ""
-    stack = [(json_file[:json_file.index(".json")], data)]
+    stack = [(root_name, data)]
     while stack:
         key, value = stack.pop()
         if isinstance(value, dict):
-            # If the value is a dictionary, create a class for it and add it to the stack
-            class_def = create_class(value, key)
+            class_def = generate_python_class(value, key)
             class_defs += class_def + "\n"
-            stack.extend([(f'{k}', v) for k, v in value.items()])
+            stack.extend([(f'{key}_{k}', v) for k, v in value.items()])
         elif isinstance(value, list):
-            # If the value is a list, add each element to the stack
-            stack.extend([(f'{key}{i}', v) for i, v in enumerate(value)])
-    
-    class_defs = contract_classes(class_defs)
-    f = open(json_file[:json_file.index(".json")]+".py",'w')
-    f.write("from dataclasses import dataclass"+"\n\n")
-    f.write(class_defs)
+            stack.extend([(f'{key}_{i}', v) for i, v in enumerate(value)])
     return class_defs
+
+def generate_python_file(json_file_path, output_file_path=None):
+    output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
+    with open(json_file_path) as f:
+        json_string = f.read()
+    class_defs = generate_python_classes(json_string)
+    with open(output_file_path, "w") as f:
+        f.write(class_defs)
 
