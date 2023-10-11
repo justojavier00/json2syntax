@@ -37,7 +37,7 @@ def generate_python_classes(data, root_name="Root"):
 def generate_python_file(json_file_path, root_name="Root", output_file_path=None):
     file_imports = "from pydantic import BaseModel \n"+\
                    "from typing import Optional \n"+\
-                   "from __future__ import annotations"
+                   "from __future__ import annotations \n"
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
