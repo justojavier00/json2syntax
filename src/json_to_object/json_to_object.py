@@ -12,7 +12,7 @@ def generate_python_class(data, name):
         data_[key] = type(val).__name__
     
     # Create the class definition code
-    class_def = "@dataclass\nclass " + name + ":\n"
+    class_def = "\nclass " + name + "(BaseModel):\n"
     for key, val in data_.items():
         class_def += "    " + key + ": " + val + "\n"
     
@@ -34,11 +34,16 @@ def generate_python_classes(data, root_name="Root"):
             stack.extend([(f'{key}_{i}', v) for i, v in enumerate(value)])
     return class_defs
 
+
 def generate_python_file(json_file_path, root_name="Root", output_file_path=None):
+    file_imports = "from __future__ import annotations \n"+\
+                   "from pydantic import BaseModel \n"+\
+                   "from typing import Optional \n\n"
+                      
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
     class_defs = generate_python_classes(json.loads(json_string), root_name=root_name)
     with open(output_file_path, "w") as f:
+        f.write(file_imports)
         f.write(class_defs)
-
