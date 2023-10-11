@@ -34,11 +34,11 @@ def generate_python_classes(data, root_name="Root"):
             stack.extend([(f'{key}_{i}', v) for i, v in enumerate(value)])
     return class_defs
 
-def generate_python_file(json_file_path, output_file_path=None):
+def generate_python_file(json_file_path, root_name="Root", output_file_path=None):
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
-    class_defs = generate_python_classes(json.loads(json_string))
+    class_defs = generate_python_classes(json.loads(json_string), root_name=root_name)
     with open(output_file_path, "w") as f:
         f.write(class_defs)
 
