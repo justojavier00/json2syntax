@@ -21,7 +21,7 @@ def consistent_class_name(data, *, optional, data_id=None, names=None, dict_ids=
             inner_class = "List[Union[" + ", ".join(class_names) + "]]"
     else:
         inner_class = type(data).__name__
-    return "Optional[" + inner_class + "]" if optional else inner_class
+    return "Optional[" + inner_class + "]" if (optional and inner_class != 'NoneType') else inner_class
 
 class ClassDef:
     def __init__(self, data):
@@ -29,7 +29,10 @@ class ClassDef:
         self.data_id = id(data)
 
     def merge(self, other):
-        if other is not None: self.data.update(other.data)
+        if other is None: return self
+        for k, v in other.data.items():
+            if k in self.data and v is None: continue
+            self.data[k] = v
         return self
 
     def code(self, names=None, dict_ids=None):
