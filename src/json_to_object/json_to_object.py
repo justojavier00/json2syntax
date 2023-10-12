@@ -6,7 +6,12 @@ def consistent_class_name(data, *, optional, data_id=None, names=None, dict_ids=
     if isinstance(data, dict):
         if data_id in dict_ids:
             class_names = list(set(consistent_class_name(d, optional=optional, names={}) for d in data.values()))
-            inner_class = "Dict[str, Union[" + ", ".join(class_names) + "]]"
+            if len(class_names) == 0:
+                inner_class = "Dict"
+            elif len(class_names) == 1:
+                inner_class = "Dict[str, " + class_names[0] + "]"
+            else:
+                inner_class = "Dict[str, Union[" + ", ".join(class_names) + "]]"
         elif names and data_id in names:
             inner_class = names[data_id]
         else:
