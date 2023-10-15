@@ -1,5 +1,5 @@
 [project]
-name = "json_to_object"
+name = "json2syntax"
 version = "0.0.1"
 authors = [
     {name="Justo Rodriguez Rondon", email = "justojavier@gmail.com"}
@@ -7,6 +7,11 @@ authors = [
 description = "Generates python classes from json files"
 readme = "README.md"
 requires+python = ">=3.7"
+
+dependencies = [
+    "pydantic",
+]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
