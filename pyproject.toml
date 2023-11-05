@@ -20,3 +20,8 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/justojavier00/json_to_object"
+
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta
