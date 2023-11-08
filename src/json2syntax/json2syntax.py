@@ -1,10 +1,25 @@
+import argparse
+from pathlib import Path
 import json
 import os
 
-def consistent_class_name(data, *, optional, data_id=None, names=None, dict_ids=None):
+
+def is_valid_json(file_path):
+    try:
+        with open(file_path) as f:
+            json.load(f)
+            return True
+    except ValueError:
+        return False
+
+
+def consistent_class_name(data, *, optional, data_id=None, names=None, dict_ids=set()):
     data_id = data_id or id(data)
+    print(dict_ids)
+    print(data)
     if isinstance(data, dict):
         if data_id in dict_ids:
+            print("data1:",data)
             class_names = list(set(consistent_class_name(d, optional=optional, names={}) for d in data.values()))
             if len(class_names) == 0:
                 inner_class = "Dict"
@@ -17,7 +32,9 @@ def consistent_class_name(data, *, optional, data_id=None, names=None, dict_ids=
         else:
             inner_class = f"C{id(data)}"
     elif isinstance(data, list):
+        print("data2:", data)
         class_names = list(set(consistent_class_name(d, optional=optional, names={}) for d in data))
+        print("data2")
         if len(class_names) == 0:
             inner_class = "List"
         elif len(class_names) == 1:
@@ -65,6 +82,9 @@ def generate_python_classes(data, path_to_name=lambda _: None, path_is_dict=lamb
                 stack.extend([(path + [k], v) for k, v in value.items()])
             else:
                 class_def = ClassDef(value)
+                print(path)
+                print("dict_ids:",dict_ids)
+                print(value)
                 name = path_to_name(path) or consistent_class_name(value, optional=False, data_id=class_def.data_id, names=class_names, dict_ids=dict_ids)
                 class_names[class_def.data_id] = name
                 class_defs[name] = class_def.merge(class_defs.get(name))
@@ -78,7 +98,23 @@ def generate_python_file(json_file_path, output_file_path=None):
     output_file_path = output_file_path or os.path.splitext(json_file_path)[0] + ".py"
     with open(json_file_path) as f:
         json_string = f.read()
+    print(json_string)
     class_defs = generate_python_classes(json.loads(json_string))
     with open(output_file_path, "w") as f:
         f.write(class_defs)
 
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path")
+    args = parser.parse_args()
+    target_json_file = Path(args.path)
+
+    if not target_json_file.exists():
+        print("The target file doesn't exist")
+        raise SystemExit(1)
+
+    if not is_valid_json(target_json_file):
+        print('Invalid JSON')
+
+    generate_python_file(target_json_file)
