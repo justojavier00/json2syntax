@@ -104,7 +104,7 @@ def generate_python_file(json_file_path, output_file_path=None):
         f.write(class_defs)
 
 
-if __name__ == '__main__':
+def json2syntax():
     parser = argparse.ArgumentParser()
     parser.add_argument("path")
     args = parser.parse_args()
@@ -118,3 +118,5 @@ if __name__ == '__main__':
         print('Invalid JSON')
 
     generate_python_file(target_json_file)
+
+    
